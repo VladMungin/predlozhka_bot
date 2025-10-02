@@ -438,7 +438,7 @@ class MessageReviewBot {
 			throw new Error('CHANNEL_ID is not configured');
 		}
 
-		const signature = `\n\n<a href="https://t.me/${this.botUsername}">Предложка</a>`;
+		const signature = `\n\n[Предложка](https://t.me/${this.botUsername})`;
 		
 		try {
 			// Формируем финальное сообщение согласно выбору пользователя
