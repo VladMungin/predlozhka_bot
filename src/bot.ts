@@ -438,8 +438,8 @@ class MessageReviewBot {
 			throw new Error('CHANNEL_ID is not configured');
 		}
 
-		const signature = `\n\n[Предложка](https://t.me/${this.botUsername})`;
-		
+		const signature = `\n\n [Предложка](https://t.me/${this.botUsername})`;
+
 		try {
 			// Формируем финальное сообщение согласно выбору пользователя
 			let finalCaption = '';
@@ -474,39 +474,38 @@ class MessageReviewBot {
 			}
 
 			if (message.media) {
-				// Публикуем медиа в канал
+				// Публикуем медиа в канал с parse_mode
+				const options = {
+					caption: finalCaption || undefined,
+					parse_mode: 'MarkdownV2' as const  // Укажите тип для TS
+				};
+
 				switch (message.media.type) {
 					case 'photo':
-						await this.bot.telegram.sendPhoto(channelId, message.media.fileId, {
-							caption: finalCaption || undefined
-						});
+						await this.bot.telegram.sendPhoto(channelId, message.media.fileId, options);
 						break;
 					case 'video':
-						await this.bot.telegram.sendVideo(channelId, message.media.fileId, {
-							caption: finalCaption || undefined
-						});
+						await this.bot.telegram.sendVideo(channelId, message.media.fileId, options);
 						break;
 					case 'document':
-						await this.bot.telegram.sendDocument(channelId, message.media.fileId, {
-							caption: finalCaption || undefined
-						});
+						await this.bot.telegram.sendDocument(channelId, message.media.fileId, options);
 						break;
 					case 'audio':
-						await this.bot.telegram.sendAudio(channelId, message.media.fileId, {
-							caption: finalCaption || undefined
-						});
+						await this.bot.telegram.sendAudio(channelId, message.media.fileId, options);
 						break;
 				}
 			} else if (message.text) {
-				// Публикуем текст в канал
-				await this.bot.telegram.sendMessage(channelId, finalText);
+				// Публикуем текст в канал с parse_mode
+				await this.bot.telegram.sendMessage(channelId, finalText, {
+					parse_mode: 'MarkdownV2' as const
+				});
 			}
 		} catch (error) {
 			console.error('Error publishing to channel:', error);
 			throw error;
 		}
 	}
-
+	
 	private async notifyUser(userId: number, text: string): Promise<void> {
 		try {
 			await this.bot.telegram.sendMessage(userId, text);
