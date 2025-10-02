@@ -1,0 +1,23 @@
+{
+  "name": "tg-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+	  "scripts": {
+		  "start": "ts-node src/bot.ts",
+		  "build": "tsc",
+		  "dev": "ts-node src/bot.ts"
+	  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@types/node": "^24.6.2",
+    "dotenv": "^17.2.3",
+    "telegraf": "^4.16.3",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
