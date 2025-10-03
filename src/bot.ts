@@ -438,7 +438,7 @@ class MessageReviewBot {
 			throw new Error('CHANNEL_ID is not configured');
 		}
 
-		// Используем HTML разметку для подписи
+		// HTML разметка для подписи
 		const signature = `\n\n<a href="https://t.me/${this.botUsername}">Предложка</a>`;
 
 		try {
@@ -474,13 +474,12 @@ class MessageReviewBot {
 				finalText = finalText ? finalText + signature : signature;
 			}
 
-			// Функция экранирования для HTML (намного проще)
+			// Для HTML экранируем только специальные символы HTML
 			const escapeHTML = (text: string): string => {
 				return text
 						.replace(/&/g, '&amp;')
 						.replace(/</g, '&lt;')
-						.replace(/>/g, '&gt;')
-						.replace(/"/g, '&quot;');
+						.replace(/>/g, '&gt;');
 			};
 
 			if (message.media) {
@@ -515,7 +514,7 @@ class MessageReviewBot {
 			throw error;
 		}
 	}
-
+	
 	private async notifyUser(userId: number, text: string): Promise<void> {
 		try {
 			await this.bot.telegram.sendMessage(userId, text);
