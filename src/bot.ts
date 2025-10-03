@@ -438,7 +438,8 @@ class MessageReviewBot {
 			throw new Error('CHANNEL_ID is not configured');
 		}
 
-		const signature = `\n\n [Предложка](https://t.me/${this.botUsername})`;
+		// Используем HTML разметку для подписи
+		const signature = `\n\n<a href="https://t.me/${this.botUsername}">Предложка</a>`;
 
 		try {
 			// Формируем финальное сообщение согласно выбору пользователя
@@ -473,19 +474,20 @@ class MessageReviewBot {
 				finalText = finalText ? finalText + signature : signature;
 			}
 
-			// Экранируем специальные символы для MarkdownV2
-			const escapeMarkdownV2 = (text: string): string => {
-				const specialChars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
-				return text.split('').map(char =>
-						specialChars.includes(char) ? `\\${char}` : char
-				).join('');
+			// Функция экранирования для HTML (намного проще)
+			const escapeHTML = (text: string): string => {
+				return text
+						.replace(/&/g, '&amp;')
+						.replace(/</g, '&lt;')
+						.replace(/>/g, '&gt;')
+						.replace(/"/g, '&quot;');
 			};
 
 			if (message.media) {
-				// Публикуем медиа в канал с parse_mode
+				// Публикуем медиа в канал с HTML разметкой
 				const options = {
-					caption: finalCaption ? escapeMarkdownV2(finalCaption) : undefined,
-					parse_mode: 'MarkdownV2' as const
+					caption: finalCaption ? escapeHTML(finalCaption) : undefined,
+					parse_mode: 'HTML' as const
 				};
 
 				switch (message.media.type) {
@@ -503,9 +505,9 @@ class MessageReviewBot {
 						break;
 				}
 			} else if (message.text) {
-				// Публикуем текст в канал с parse_mode
-				await this.bot.telegram.sendMessage(channelId, escapeMarkdownV2(finalText), {
-					parse_mode: 'MarkdownV2' as const
+				// Публикуем текст в канал с HTML разметкой
+				await this.bot.telegram.sendMessage(channelId, escapeHTML(finalText), {
+					parse_mode: 'HTML' as const
 				});
 			}
 		} catch (error) {
