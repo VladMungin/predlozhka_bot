@@ -473,11 +473,19 @@ class MessageReviewBot {
 				finalText = finalText ? finalText + signature : signature;
 			}
 
+			// Экранируем специальные символы для MarkdownV2
+			const escapeMarkdownV2 = (text: string): string => {
+				const specialChars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
+				return text.split('').map(char =>
+						specialChars.includes(char) ? `\\${char}` : char
+				).join('');
+			};
+
 			if (message.media) {
 				// Публикуем медиа в канал с parse_mode
 				const options = {
-					caption: finalCaption || undefined,
-					parse_mode: 'MarkdownV2' as const  // Укажите тип для TS
+					caption: finalCaption ? escapeMarkdownV2(finalCaption) : undefined,
+					parse_mode: 'MarkdownV2' as const
 				};
 
 				switch (message.media.type) {
@@ -496,7 +504,7 @@ class MessageReviewBot {
 				}
 			} else if (message.text) {
 				// Публикуем текст в канал с parse_mode
-				await this.bot.telegram.sendMessage(channelId, finalText, {
+				await this.bot.telegram.sendMessage(channelId, escapeMarkdownV2(finalText), {
 					parse_mode: 'MarkdownV2' as const
 				});
 			}
@@ -505,7 +513,7 @@ class MessageReviewBot {
 			throw error;
 		}
 	}
-	
+
 	private async notifyUser(userId: number, text: string): Promise<void> {
 		try {
 			await this.bot.telegram.sendMessage(userId, text);
