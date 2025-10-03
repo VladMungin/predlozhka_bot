@@ -438,8 +438,8 @@ class MessageReviewBot {
 			throw new Error('CHANNEL_ID is not configured');
 		}
 
-		// HTML разметка для подписи
-		const signature = `\n\n<a href="https://t.me/${this.botUsername}">Предложка</a>`;
+		// MarkdownV2 ссылка - НЕ экранируем её!
+		const signature = `\n\n[Предложка](https://t.me/${this.botUsername})`;
 
 		try {
 			// Формируем финальное сообщение согласно выбору пользователя
@@ -474,19 +474,40 @@ class MessageReviewBot {
 				finalText = finalText ? finalText + signature : signature;
 			}
 
-			// Для HTML экранируем только специальные символы HTML
-			const escapeHTML = (text: string): string => {
-				return text
-						.replace(/&/g, '&amp;')
-						.replace(/</g, '&lt;')
-						.replace(/>/g, '&gt;');
+			// Умное экранирование: экранируем только основной текст, но не Markdown ссылки
+			const escapeMarkdownV2Text = (text: string): string => {
+				const specialChars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
+
+				let result = '';
+				let i = 0;
+
+				while (i < text.length) {
+					// Проверяем, не начинается ли Markdown ссылка
+					if (text.startsWith('[Предложка](https://t.me/', i)) {
+						// Нашли нашу ссылку - добавляем без изменений
+						const linkEnd = text.indexOf(')', i) + 1;
+						result += text.substring(i, linkEnd);
+						i = linkEnd;
+					} else {
+						// Обычный текст - экранируем специальные символы
+						const char = text[i];
+						if (specialChars.includes(char)) {
+							result += `\\${char}`;
+						} else {
+							result += char;
+						}
+						i++;
+					}
+				}
+
+				return result;
 			};
 
 			if (message.media) {
-				// Публикуем медиа в канал с HTML разметкой
+				// Публикуем медиа в канал с parse_mode
 				const options = {
-					caption: finalCaption ? escapeHTML(finalCaption) : undefined,
-					parse_mode: 'HTML' as const
+					caption: finalCaption ? escapeMarkdownV2Text(finalCaption) : undefined,
+					parse_mode: 'MarkdownV2' as const
 				};
 
 				switch (message.media.type) {
@@ -504,9 +525,9 @@ class MessageReviewBot {
 						break;
 				}
 			} else if (message.text) {
-				// Публикуем текст в канал с HTML разметкой
-				await this.bot.telegram.sendMessage(channelId, escapeHTML(finalText), {
-					parse_mode: 'HTML' as const
+				// Публикуем текст в канал с parse_mode
+				await this.bot.telegram.sendMessage(channelId, escapeMarkdownV2Text(finalText), {
+					parse_mode: 'MarkdownV2' as const
 				});
 			}
 		} catch (error) {
